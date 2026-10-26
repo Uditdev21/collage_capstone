@@ -1,0 +1,71 @@
+# ==============================================================================
+# SmartDev Backend .gitignore
+# ==============================================================================
+
+# OS & Filesystem
+.DS_Store
+.DS_Store?
+._*
+
+# IDE & Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+*.iml
+
+# Environment & Secrets
+.env
+.env.*
+!.env.example
+secrets.json
+
+# Python Bytecode & Builds
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+
+# Testing & Linting
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# SQLite Database & WAL files
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+smartdev.db
+
+# Mosquitto MQTT Broker Runtime Storage
+mosquitto/data/*
+!mosquitto/data/.gitkeep
+mosquitto/log/*
+!mosquitto/log/.gitkeep
+
+# Logs
+*.log
+logs/

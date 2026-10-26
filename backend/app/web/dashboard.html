@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartDev AI IoT • Intelligent Tasmota Control & Diagnostics</title>
+  <meta name="description" content="Next-Generation IoT Controller powered by Llama AI, Real-time WebSockets, Predictive Telemetry Diagnostics, and Automation Engine.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #07090E;
+      --bg-surface: #0E131F;
+      --bg-card: rgba(18, 24, 38, 0.75);
+      --bg-card-hover: rgba(26, 34, 52, 0.85);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-glow: rgba(6, 182, 212, 0.35);
+      --text-primary: #F8FAFC;
+      --text-secondary: #94A3B8;
+      --text-muted: #64748B;
+      --accent-cyan: #06B6D4;
+      --accent-emerald: #10B981;
+      --accent-purple: #8B5CF6;
+      --accent-rose: #F43F5E;
+      --accent-amber: #F59E0B;
+      --shadow-glow: 0 0 25px rgba(6, 182, 212, 0.15);
+      --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-primary);
+      background-image: 
+        radial-gradient(circle at 15% 20%, rgba(6, 182, 212, 0.07) 0%, transparent 40%),
+        radial-gradient(circle at 85% 80%, rgba(139, 92, 246, 0.07) 0%, transparent 40%),
+        linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 32px 32px, 32px 32px;
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* Top Navigation */
+    header {
+      backdrop-filter: blur(20px);
+      background: rgba(7, 9, 14, 0.85);
+      border-bottom: 1px solid var(--border-subtle);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      padding: 0.85rem 1.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      text-decoration: none;
+    }
+
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 15px rgba(6, 182, 212, 0.4);
+      font-weight: 800;
+      font-size: 1.15rem;
+      color: #fff;
+    }
+
+    .brand-text h1 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .brand-text span {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.35rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: var(--accent-emerald);
+      transition: all 0.2s ease;
+    }
+
+    .status-badge.disconnected {
+      background: rgba(244, 63, 94, 0.12);
+      border-color: rgba(244, 63, 94, 0.3);
+      color: var(--accent-rose);
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background-color: currentColor;
+      box-shadow: 0 0 8px currentColor;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.85); }
+    }
+
+    .btn-ghost {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      padding: 0.45rem 0.9rem;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: all 0.2s;
+    }
+
+    .btn-ghost:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-primary);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Main Container */
+    main {
+      flex: 1;
+      max-width: 1440px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 1.5rem;
+      display: grid;
+      grid-template-columns: 1fr 390px;
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 1080px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Cards */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      backdrop-filter: blur(16px);
+      padding: 1.25rem;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .card:hover {
+      border-color: rgba(255, 255, 255, 0.14);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+
+    .card-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* Stats Grid */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+      background: rgba(14, 19, 31, 0.6);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+
+    .stat-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+    }
+
+    .stat-val {
+      font-size: 1.35rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .stat-lbl {
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+    }
+
+    /* Device Selector & Controls */
+    .controls-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .control-card {
+      background: rgba(14, 19, 31, 0.8);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 1.1rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.25s ease;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .control-card:hover {
+      border-color: var(--accent-cyan);
+      box-shadow: 0 4px 20px rgba(6, 182, 212, 0.12);
+      transform: translateY(-2px);
+    }
+
+    .control-card.active {
+      border-color: var(--accent-cyan);
+      background: linear-gradient(145deg, rgba(6, 182, 212, 0.1), rgba(14, 19, 31, 0.9));
+    }
+
+    .control-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 0.85rem;
+    }
+
+    .control-name {
+      font-weight: 700;
+      font-size: 1rem;
+    }
+
+    .control-cmd {
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      color: var(--accent-cyan);
+      background: rgba(6, 182, 212, 0.1);
+      padding: 0.2rem 0.45rem;
+      border-radius: 6px;
+      margin-top: 0.25rem;
+      display: inline-block;
+    }
+
+    .switch-pill {
+      width: 50px;
+      height: 26px;
+      background: #334155;
+      border-radius: 9999px;
+      position: relative;
+      transition: background 0.25s ease;
+      cursor: pointer;
+    }
+
+    .switch-pill.on {
+      background: var(--accent-cyan);
+      box-shadow: 0 0 12px rgba(6, 182, 212, 0.5);
+    }
+
+    .switch-handle {
+      width: 20px;
+      height: 20px;
+      background: #fff;
+      border-radius: 50%;
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .switch-pill.on .switch-handle {
+      transform: translateX(24px);
+    }
+
+    .control-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      padding-top: 0.65rem;
+      margin-top: 0.5rem;
+    }
+
+    /* Quick Scenes */
+    .scenes-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 0.75rem;
+      margin-top: 0.75rem;
+    }
+
+    .scene-btn {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 0.75rem 0.5rem;
+      color: var(--text-primary);
+      cursor: pointer;
+      font-family: var(--font-sans);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+      transition: all 0.2s;
+    }
+
+    .scene-btn:hover {
+      background: rgba(6, 182, 212, 0.1);
+      border-color: var(--accent-cyan);
+      transform: translateY(-2px);
+    }
+
+    .scene-icon {
+      font-size: 1.4rem;
+    }
+
+    .scene-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    /* AI Copilot Sidebar */
+    .ai-panel {
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 110px);
+      position: sticky;
+      top: 85px;
+    }
+
+    .ai-chat-box {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      max-height: 480px;
+    }
+
+    .chat-bubble {
+      padding: 0.85rem 1rem;
+      border-radius: 14px;
+      font-size: 0.84rem;
+      line-height: 1.45;
+      max-width: 88%;
+      animation: fadeIn 0.2s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .chat-bubble.user {
+      align-self: flex-end;
+      background: linear-gradient(135deg, var(--accent-cyan), #0284C7);
+      color: #fff;
+      border-bottom-right-radius: 4px;
+    }
+
+    .chat-bubble.assistant {
+      align-self: flex-start;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+      border-bottom-left-radius: 4px;
+    }
+
+    .chat-bubble.assistant .model-tag {
+      font-size: 0.65rem;
+      font-family: var(--font-mono);
+      color: var(--accent-purple);
+      display: block;
+      margin-bottom: 0.35rem;
+      font-weight: 600;
+    }
+
+    .action-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.7rem;
+      font-family: var(--font-mono);
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: var(--accent-emerald);
+      padding: 0.2rem 0.5rem;
+      border-radius: 6px;
+      margin-top: 0.4rem;
+      margin-right: 0.3rem;
+    }
+
+    .quick-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      padding: 0.5rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .chip-btn {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+      padding: 0.3rem 0.65rem;
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .chip-btn:hover {
+      background: rgba(6, 182, 212, 0.12);
+      border-color: var(--accent-cyan);
+      color: var(--text-primary);
+    }
+
+    .ai-input-form {
+      display: flex;
+      gap: 0.5rem;
+      padding-top: 0.75rem;
+    }
+
+    .ai-input {
+      flex: 1;
+      background: rgba(7, 9, 14, 0.8);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 0.65rem 0.85rem;
+      font-size: 0.85rem;
+      color: var(--text-primary);
+      outline: none;
+      font-family: var(--font-sans);
+    }
+
+    .ai-input:focus {
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 10px rgba(6, 182, 212, 0.25);
+    }
+
+    .ai-send-btn {
+      background: var(--accent-cyan);
+      color: #07090E;
+      border: none;
+      border-radius: 10px;
+      padding: 0 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .ai-send-btn:hover {
+      background: #38BDF8;
+      box-shadow: 0 0 15px rgba(6, 182, 212, 0.4);
+    }
+
+    /* Live Event Terminal */
+    .event-log {
+      background: #030508;
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 0.75rem;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: #38BDF8;
+      max-height: 180px;
+      overflow-y: auto;
+    }
+
+    .log-line {
+      margin-bottom: 0.3rem;
+      word-break: break-all;
+    }
+
+    .log-time {
+      color: var(--text-muted);
+    }
+
+    .log-topic {
+      color: var(--accent-purple);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header>
+    <a href="#" class="brand">
+      <div class="brand-logo">⚡</div>
+      <div class="brand-text">
+        <h1>SmartDev AI IoT <span id="versionTag">v2.0</span></h1>
+        <span>Tasmota MQTT & Llama Copilot Engine</span>
+      </div>
+    </a>
+
+    <div class="nav-actions">
+      <div id="wsStatusBadge" class="status-badge">
+        <div class="status-dot"></div>
+        <span id="wsStatusText">WebSocket Live</span>
+      </div>
+      <a href="/docs" target="_blank" class="btn-ghost">
+        <span>📖 API Docs</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Main Grid Layout -->
+  <main>
+    <!-- Left Column: Controls & Analytics -->
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+      
+      <!-- Telemetry Stats Cards -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald);">🛡️</div>
+          <div>
+            <div id="healthScoreVal" class="stat-val" style="color: var(--accent-emerald);">98%</div>
+            <div class="stat-lbl">AI Health Score</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon" style="background: rgba(6, 182, 212, 0.15); color: var(--accent-cyan);">📶</div>
+          <div>
+            <div id="wifiVal" class="stat-val">56%</div>
+            <div class="stat-lbl">WiFi Link Quality</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon" style="background: rgba(139, 92, 246, 0.15); color: var(--accent-purple);">🧠</div>
+          <div>
+            <div id="heapVal" class="stat-val">23 KB</div>
+            <div class="stat-lbl">Heap Memory</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--accent-amber);">⚡</div>
+          <div>
+            <div id="uptimeVal" class="stat-val">33s</div>
+            <div class="stat-lbl">System Uptime</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Scenes Hub -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">⚡ Instant Smart Scenes</h2>
+          <span style="font-size: 0.75rem; color: var(--text-muted);">One-touch hardware presets</span>
+        </div>
+        <div class="scenes-row">
+          <button class="scene-btn" onclick="triggerScene('all_on')">
+            <span class="scene-icon">💡</span>
+            <span class="scene-label">All Relays ON</span>
+          </button>
+          <button class="scene-btn" onclick="triggerScene('all_off')">
+            <span class="scene-icon">🔌</span>
+            <span class="scene-label">Full Power Down</span>
+          </button>
+          <button class="scene-btn" onclick="triggerScene('eco_mode')">
+            <span class="scene-icon">🌱</span>
+            <span class="scene-label">Eco Mode</span>
+          </button>
+          <button class="scene-btn" onclick="triggerScene('alert_chime')">
+            <span class="scene-icon">🔔</span>
+            <span class="scene-label">Acoustic Chime</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Connected Hardware Controls Hub -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">🎛️ Active Device Controls (<span id="activeDeviceId">tasmota_0C3249</span>)</h2>
+          <div style="display: flex; gap: 0.5rem;">
+            <select id="deviceSelector" class="ai-input" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" onchange="changeDevice(this.value)">
+              <option value="tasmota_0C3249">tasmota_0C3249 (Hardware ESP8266)</option>
+            </select>
+            <button class="btn-ghost" onclick="refreshDevice()">🔄 Refresh</button>
+          </div>
+        </div>
+
+        <div id="controlsContainer" class="controls-grid">
+          <!-- Dynamic Controls rendered via Javascript -->
+          <div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 2rem;">
+            Connecting to IoT adapter and discovering switches...
+          </div>
+        </div>
+      </div>
+
+      <!-- Real-Time WebSocket Event Stream -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">📡 Real-Time MQTT & Telemetry Stream</h2>
+          <span style="font-size: 0.72rem; color: var(--text-muted);">0ms WebSocket Push</span>
+        </div>
+        <div id="eventLog" class="event-log">
+          <div class="log-line"><span class="log-time">[Init]</span> Connecting to live WebSocket bus...</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right Column: AI Llama Copilot & Diagnostics -->
+    <div class="ai-panel">
+      <div class="card" style="display: flex; flex-direction: column; height: 100%;">
+        <div class="card-header" style="border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.75rem;">
+          <h2 class="card-title">
+            <span style="color: var(--accent-purple);">🧠</span> AI Copilot & Sentinel
+          </h2>
+          <span id="aiModelBadge" style="font-size: 0.68rem; font-family: var(--font-mono); color: var(--accent-cyan); background: rgba(6, 182, 212, 0.12); padding: 0.2rem 0.5rem; border-radius: 9999px;">
+            Llama 3.2 / Groq AI
+          </span>
+        </div>
+
+        <!-- Chat History -->
+        <div id="chatBox" class="ai-chat-box">
+          <div class="chat-bubble assistant">
+            <span class="model-tag">SmartDev Cortex</span>
+            Hello! I am your SmartDev IoT Copilot. I can control your relays, execute scenes, analyze WiFi and Heap telemetry, or diagnose hardware health. What would you like to do?
+          </div>
+        </div>
+
+        <!-- Quick Prompt Chips -->
+        <div class="quick-chips">
+          <button class="chip-btn" onclick="sendPrompt('Turn on Relay 1')">⚡ Relay 1 ON</button>
+          <button class="chip-btn" onclick="sendPrompt('Turn off all relays')">🌙 All Relays OFF</button>
+          <button class="chip-btn" onclick="sendPrompt('How is my WiFi and health?')">📊 System Health</button>
+          <button class="chip-btn" onclick="sendPrompt('Beep buzzer')">🔔 Audio Beacon</button>
+        </div>
+
+        <!-- Chat Input Form -->
+        <form class="ai-input-form" onsubmit="handleChatSubmit(event)">
+          <input type="text" id="aiInput" class="ai-input" placeholder="Type a command (e.g. 'Turn on Relay 2')..." autocomplete="off">
+          <button type="submit" id="aiSendBtn" class="ai-send-btn">Send</button>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const API_BASE = window.location.origin;
+    const API_KEY = "udit";
+    let activeDeviceId = "tasmota_0C3249";
+    let ws = null;
+
+    // Initialize
+    window.addEventListener("DOMContentLoaded", () => {
+      initWebSocket();
+      fetchDevices();
+      fetchHealth();
+    });
+
+    // Real-Time WebSocket Connection
+    function initWebSocket() {
+      const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
+      const wsUrl = `${proto}//${window.location.host}/api/ws/live`;
+      logEvent(`Connecting to ${wsUrl}...`);
+
+      ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => {
+        document.getElementById("wsStatusBadge").classList.remove("disconnected");
+        document.getElementById("wsStatusText").innerText = "WebSocket Live";
+        logEvent("WebSocket connected successfully.");
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const msg = JSON.parse(event.data);
+          handleWebSocketMessage(msg);
+        } catch (e) {
+          console.error("WS parse error:", e);
+        }
+      };
+
+      ws.onclose = () => {
+        document.getElementById("wsStatusBadge").classList.add("disconnected");
+        document.getElementById("wsStatusText").innerText = "Reconnecting...";
+        logEvent("WebSocket disconnected. Reattempting in 3s...");
+        setTimeout(initWebSocket, 3000);
+      };
+    }
+
+    function handleWebSocketMessage(msg) {
+      const time = new Date().toLocaleTimeString();
+      logEvent(`[${msg.event}] ${JSON.stringify(msg.data || msg.message)}`);
+
+      if (msg.event === "device_update" || msg.event === "control_applied") {
+        if (!msg.device_id || msg.device_id === activeDeviceId) {
+          fetchDeviceDetails(activeDeviceId);
+        }
+      } else if (msg.event === "ai_interaction") {
+        // Update chat if from other sessions
+      }
+    }
+
+    function logEvent(text) {
+      const log = document.getElementById("eventLog");
+      const time = new Date().toLocaleTimeString();
+      const line = document.createElement("div");
+      line.className = "log-line";
+      line.innerHTML = `<span class="log-time">[${time}]</span> ${text}`;
+      log.prepend(line);
+      if (log.children.length > 50) log.removeChild(log.lastChild);
+    }
+
+    // Fetch Devices
+    async function fetchDevices() {
+      try {
+        const res = await fetch(`${API_BASE}/api/devices`, {
+          headers: { "X-API-Key": API_KEY }
+        });
+        const devices = await res.json();
+        const sel = document.getElementById("deviceSelector");
+        sel.innerHTML = "";
+        devices.forEach(d => {
+          const opt = document.createElement("option");
+          opt.value = d.device_id;
+          opt.innerText = d.custom_name ? `${d.custom_name} (${d.device_id})` : d.device_id;
+          if (d.device_id === activeDeviceId) opt.selected = true;
+          sel.appendChild(opt);
+        });
+        fetchDeviceDetails(activeDeviceId);
+      } catch (e) {
+        console.error("Error fetching devices:", e);
+      }
+    }
+
+    // Change Active Device
+    function changeDevice(devId) {
+      activeDeviceId = devId;
+      document.getElementById("activeDeviceId").innerText = devId;
+      fetchDeviceDetails(devId);
+    }
+
+    // Fetch Device Details & Controls
+    async function fetchDeviceDetails(devId) {
+      try {
+        const res = await fetch(`${API_BASE}/api/devices/${devId}/modules?refresh=false`, {
+          headers: { "X-API-Key": API_KEY }
+        });
+        const data = await res.json();
+        renderControls(data.controls || []);
+        updateTelemetryStats(data);
+      } catch (e) {
+        console.error("Error loading device:", e);
+      }
+    }
+
+    function renderControls(controls) {
+      const container = document.getElementById("controlsContainer");
+      container.innerHTML = "";
+
+      if (!controls.length) {
+        container.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 1.5rem;">No controllable modules found for this device.</div>`;
+        return;
+      }
+
+      controls.forEach(ctrl => {
+        const card = document.createElement("div");
+        card.className = "control-card";
+        const isOn = ctrl.state === "ON" || ctrl.state === 1 || ctrl.state === true;
+        if (isOn) card.classList.add("active");
+
+        if (ctrl.type === "switch") {
+          card.innerHTML = `
+            <div class="control-top">
+              <div>
+                <div class="control-name">${ctrl.name}</div>
+                <div class="control-cmd">${ctrl.command} • ${ctrl.gpio || 'Pin Auto'}</div>
+              </div>
+              <div class="switch-pill ${isOn ? 'on' : ''}" onclick="toggleControl('${ctrl.id}', '${isOn ? 'OFF' : 'ON'}')">
+                <div class="switch-handle"></div>
+              </div>
+            </div>
+            <div class="control-footer">
+              <span>Status: <strong style="color: ${isOn ? 'var(--accent-cyan)' : 'var(--text-muted)'}">${ctrl.state || 'OFF'}</strong></span>
+              <span style="cursor: pointer;" onclick="toggleControl('${ctrl.id}', 'TOGGLE')">Tap to Toggle</span>
+            </div>
+          `;
+        } else if (ctrl.type === "button") {
+          card.innerHTML = `
+            <div class="control-top">
+              <div>
+                <div class="control-name">${ctrl.name}</div>
+                <div class="control-cmd">${ctrl.command} • Acoustic</div>
+              </div>
+              <button class="btn-ghost" style="background: rgba(245, 158, 11, 0.15); color: var(--accent-amber); border-color: rgba(245, 158, 11, 0.3);" onclick="toggleControl('${ctrl.id}', 'BEEP')">
+                🔊 Trigger
+              </button>
+            </div>
+            <div class="control-footer">
+              <span>Acoustic Pulse Beacon</span>
+              <span>Ready</span>
+            </div>
+          `;
+        } else if (ctrl.type === "slider") {
+          card.innerHTML = `
+            <div class="control-top">
+              <div>
+                <div class="control-name">${ctrl.name}</div>
+                <div class="control-cmd">${ctrl.command}</div>
+              </div>
+              <span style="font-weight: 700; color: var(--accent-cyan);">${ctrl.state || 0}%</span>
+            </div>
+            <input type="range" min="${ctrl.min || 0}" max="${ctrl.max || 100}" value="${ctrl.state || 0}" 
+                   style="width: 100%; accent-color: var(--accent-cyan); margin: 0.5rem 0;" 
+                   onchange="toggleControl('${ctrl.id}', this.value)">
+            <div class="control-footer">
+              <span>Brightness Control</span>
+              <span>0 - 100</span>
+            </div>
+          `;
+        }
+
+        container.appendChild(card);
+      });
+    }
+
+    function updateTelemetryStats(data) {
+      const raw = data.raw_details || {};
+      const state = raw.STATUS11?.StatusSTS || raw.STATE || {};
+      const wifi = state.Wifi || {};
+      
+      if (wifi.RSSI) document.getElementById("wifiVal").innerText = `${wifi.RSSI}%`;
+      if (state.Heap) document.getElementById("heapVal").innerText = `${state.Heap} KB`;
+      if (state.Uptime) document.getElementById("uptimeVal").innerText = state.Uptime;
+    }
+
+    // Toggle Control Action
+    async function toggleControl(target, value) {
+      logEvent(`Executing control [${target}] -> ${value}...`);
+      try {
+        const res = await fetch(`${API_BASE}/api/devices/${activeDeviceId}/control`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-API-Key": API_KEY,
+          },
+          body: JSON.stringify({ target, value })
+        });
+        const out = await res.json();
+        if (out.success) {
+          logEvent(`✅ Applied: ${out.command} set to ${out.new_state}`);
+          fetchDeviceDetails(activeDeviceId);
+        } else {
+          logEvent(`❌ Control failed: ${out.message}`);
+        }
+      } catch (e) {
+        console.error("Control error:", e);
+      }
+    }
+
+    // Trigger Scene
+    async function triggerScene(sceneId) {
+      logEvent(`Triggering scene [${sceneId}]...`);
+      try {
+        const res = await fetch(`${API_BASE}/api/automations/scenes/${sceneId}/trigger`, {
+          method: "POST",
+          headers: { "X-API-Key": API_KEY }
+        });
+        const out = await res.json();
+        logEvent(`✨ ${out.message}`);
+        fetchDeviceDetails(activeDeviceId);
+      } catch (e) {
+        console.error("Scene error:", e);
+      }
+    }
+
+    // Fetch Health
+    async function fetchHealth() {
+      try {
+        const res = await fetch(`${API_BASE}/api/ai/diagnostics/${activeDeviceId}`);
+        const data = await res.json();
+        document.getElementById("healthScoreVal").innerText = `${data.health_score}%`;
+        if (data.health_score < 75) {
+          document.getElementById("healthScoreVal").style.color = "var(--accent-amber)";
+        }
+      } catch (e) {
+        console.error("Diagnostics error:", e);
+      }
+    }
+
+    // AI Copilot Chat Submit
+    async function handleChatSubmit(e) {
+      e.preventDefault();
+      const input = document.getElementById("aiInput");
+      const prompt = input.value.trim();
+      if (!prompt) return;
+
+      input.value = "";
+      sendPrompt(prompt);
+    }
+
+    async function sendPrompt(prompt) {
+      appendChatMessage("user", prompt);
+      const sendBtn = document.getElementById("aiSendBtn");
+      sendBtn.innerText = "⏳";
+      sendBtn.disabled = true;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/ai/copilot`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-API-Key": API_KEY,
+          },
+          body: JSON.stringify({
+            prompt: prompt,
+            device_id: activeDeviceId,
+          })
+        });
+        const out = await res.json();
+        appendChatMessage("assistant", out.response, out.model, out.actions_executed);
+        if (out.actions_executed && out.actions_executed.length) {
+          fetchDeviceDetails(activeDeviceId);
+        }
+      } catch (e) {
+        appendChatMessage("assistant", "Sorry, I encountered an error communicating with the AI service.");
+      } finally {
+        sendBtn.innerText = "Send";
+        sendBtn.disabled = false;
+      }
+    }
+
+    function appendChatMessage(role, text, model = "", actions = []) {
+      const box = document.getElementById("chatBox");
+      const bubble = document.createElement("div");
+      bubble.className = `chat-bubble ${role}`;
+
+      let actionsHtml = "";
+      if (actions && actions.length) {
+        actions.forEach(a => {
+          actionsHtml += `<span class="action-badge">⚡ ${a.target} &rarr; ${a.value}</span>`;
+        });
+      }
+
+      if (role === "assistant") {
+        bubble.innerHTML = `
+          <span class="model-tag">${model || 'SmartDev Sentinel'}</span>
+          <div>${text.replace(/\n/g, '<br>')}</div>
+          ${actionsHtml ? `<div style="margin-top: 0.4rem;">${actionsHtml}</div>` : ''}
+        `;
+      } else {
+        bubble.innerText = text;
+      }
+
+      box.appendChild(bubble);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function refreshDevice() {
+      fetchDeviceDetails(activeDeviceId);
+      fetchHealth();
+    }
+  </script>
+</body>
+</html>
